@@ -20,6 +20,26 @@ function countOpenTabs(){
   button.badge = tabs.length;
 }
 
+var tabStats = {
+  count: 0,
+  oldest: null,
+  newest: null,
+  lastClosed : null,
+  all : {}
+};
+
+
+
+function gatherStats() {
+  for (let tab of tabs) {
+    tabStats.all[tab.id] = { id: tab.id };
+    if (tab.readyState === 'interactive' || tab.readyState === 'complete') {
+      tabStats.all[tab.id].url = tab.url;
+      tabStats.all[tab.id].title = tab.url;
+    }
+  }
+}
+
 tabs.on('open', countOpenTabs);
 tabs.on('close', countOpenTabs);
 windows.on('open', countOpenTabs);
@@ -31,6 +51,8 @@ contentURL: self.data.url("panel.html"),
 onHide: handleHide
 });
 
+
+
 function handleChange(state) {
   if (state.checked) {
     panel.show({
@@ -41,7 +63,4 @@ function handleChange(state) {
 
 function handleHide() {
   button.state('window', {checked: false});
-}
-function handleClick(state) {
-  tabs.open("./package.json");
 }
