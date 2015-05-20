@@ -1,7 +1,7 @@
 var { ToggleButton } = require('sdk/ui/button/toggle');
 var panels = require("sdk/panel");
 var self = require("sdk/self");
-
+var windows = require("sdk/windows").browserWindows;
 var tabs = require("sdk/tabs");
 
 var button = ToggleButton({
@@ -22,7 +22,8 @@ function countOpenTabs(){
 
 tabs.on('open', countOpenTabs);
 tabs.on('close', countOpenTabs);
-
+windows.on('open', countOpenTabs);
+windows.on('close', countOpenTabs);
 countOpenTabs();
 
 var panel = panels.Panel({
@@ -44,4 +45,3 @@ function handleHide() {
 function handleClick(state) {
   tabs.open("./package.json");
 }
-
