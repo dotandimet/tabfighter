@@ -1,21 +1,14 @@
-  console.log("Hello from content script");
-  window.addEventListener('click', function(event) {
-    self.port.emit('getstats', 1);
-    event.stopPropogation();
-    event.preventDefault();
-  }, false);
 
-  self.port.on('stats', function(out) {
+  self.port.on('stats', function(stats) {
+    console.log(stats);
+    console.log(JSON.stringify(stats));
+    var out = '<table>';
+    var k = Object.keys(stats.all);
+    Array.forEach(k, function(i) {
+      let stat = stats.all[i];
+      out += `<tr><td>${stat.id}</td><td>${stat.title}</td><td>${stat.url}</td></tr>`;
+    });
+    out += '</table>'; 
     document.getElementById('display').innerHTML = out;
   });
-/*      function showTabStats() {
-var stats = [
-      { id: 'bob', title: 'a dude', url: 'http://corky.net' }
-    ];
-    var out = '<table>';
-    for (stat of stats) {
-      out += `<td>${stat.id}</td><td>${stat.title}</td><td>${stat.url}</td>`;
-    }
-    out += '</table>'; 
-  }*/
 

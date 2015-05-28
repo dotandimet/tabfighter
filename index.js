@@ -17,6 +17,9 @@ var button = ToggleButton({
 });
 
 function countOpenTabs(){
+  for (let tab of tabs) {
+    tabReady(tab);
+  }
   button.badge = tabStats.count = tabs.length;
 }
 
@@ -30,7 +33,7 @@ var tabStats = {
 
 function getStatForTab(id) {
   if (!tabStats.all[id])
-    tabStats.all[id] = { "id": id };
+    tabStats.all[id] = { "id": id, "navCount": 0 };
   return tabStats.all[id];
 }
 
@@ -54,7 +57,7 @@ function tabReady(tab) {
         stat.navCount++;
      }
     stat.url = tab.url;
-    stat.title = tab.url;
+    stat.title = tab.title;
 }
 
 tabs.on('open', function(tab){
@@ -79,10 +82,8 @@ contentScriptFile: self.data.url("stats.js"),
 onHide: handleHide
 });
 
-panel.port.on('getstats', function(x) {
-  let payload = JSON.stringify(tabStats);
-  console.log(`sending payload: ${payload}`);
-  panel.port.emit('stats', payload);
+panel.on('show', function() {
+  panel.port.emit('stats', tabStats);
 });
 
 function handleChange(state) {
