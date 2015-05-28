@@ -17,7 +17,7 @@ var button = ToggleButton({
 });
 
 function countOpenTabs(){
-  button.badge = tabs.length;
+  button.badge = tabStats.count = tabs.length;
 }
 
 var tabStats = {
@@ -28,30 +28,62 @@ var tabStats = {
   all : {}
 };
 
-
-
-function gatherStats() {
-  for (let tab of tabs) {
-    tabStats.all[tab.id] = { id: tab.id };
-    if (tab.readyState === 'interactive' || tab.readyState === 'complete') {
-      tabStats.all[tab.id].url = tab.url;
-      tabStats.all[tab.id].title = tab.url;
-    }
-  }
+function getStatForTab(id) {
+  if (!tabStats.all[id])
+    tabStats.all[id] = { "id": id };
+  return tabStats.all[id];
 }
 
-tabs.on('open', countOpenTabs);
-tabs.on('close', countOpenTabs);
+function tabAdd(tab) {
+  let stat = getStatForTab(tab.id);
+  stat.birth = Date.now();
+}
+
+function tabDrop(tab) {
+  delete tabStats.all[tab.id];
+}
+
+function tabAge(id) {
+  let stat = getStatForTab(id);
+  return Date.now() - stat.birth;
+}
+
+function tabReady(tab) {
+    let stat = getStatForTab(tab.id);
+    if (stat.url && tab.url !== stat.url) {
+        stat.navCount++;
+     }
+    stat.url = tab.url;
+    stat.title = tab.url;
+}
+
+tabs.on('open', function(tab){
+  tabAdd(tab);
+  countOpenTabs();
+  tab.on('ready', tabReady)
+});
+
+tabs.on('close', function(tab) {
+  tabDrop(tab);
+  countOpenTabs();
+});
+
 windows.on('open', countOpenTabs);
 windows.on('close', countOpenTabs);
+
 countOpenTabs();
 
 var panel = panels.Panel({
 contentURL: self.data.url("panel.html"),
+contentScriptFile: self.data.url("stats.js"),
 onHide: handleHide
 });
 
-
+panel.port.on('getstats', function(x) {
+  let payload = JSON.stringify(tabStats);
+  console.log(`sending payload: ${payload}`);
+  panel.port.emit('stats', payload);
+});
 
 function handleChange(state) {
   if (state.checked) {
