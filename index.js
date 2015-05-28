@@ -8,9 +8,9 @@ var button = ToggleButton({
   id: "tabfighter-button",
   label: "Fight Tab Addiction!",
   icon: {
-    "16": "./icon-16.png",
-    "32": "./icon-32.png",
-    "64": "./icon-64.png"
+    "16": "./tabfighter2-16.png",
+    "32": "./tabfighter2-32.png",
+    "64": "./tabfighter2-64.png"
   },
   badge: 0,
   onClick: handleChange
