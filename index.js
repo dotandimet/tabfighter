@@ -3,6 +3,7 @@ var panels = require("sdk/panel");
 var self = require("sdk/self");
 var windows = require("sdk/windows").browserWindows;
 var tabs = require("sdk/tabs");
+var moment = require("moment");
 
 var button = ToggleButton({
   id: "tabfighter-button",
@@ -17,34 +18,22 @@ var button = ToggleButton({
 });
 
 function countOpenTabs(){
-  button.badge = tabStats.count = tabs.length;
+  button.badge = tabs.length;
 }
 
 var tabStats = {
-  count: function() {
-    return Object.keys(tabStats.all).length;
-   },
-  oldest: function() {
-    var oldest_idx;
-    for (let idx in tabStat.all) {
-       
-    return Object.values(tabStats.all).reduce(
-      function(prev, curr, i, ar) {
-        if (curr.birth < prev.birth) {
-         return curr;
-        }
-        else {
-         return prev;
-        }
-  newest: null,
-  lastClosed : null,
-  all : {}
+ opened: 0,
+ closed: 0,
+ oldest: null,
+ newest: null,
+ lastClosed : null,
+ all : {}
 };
 
 function getStatForTab(id) {
   if (!tabStats.all[id]) {
     // create new:
-    tabStats.all[id] = { "id": id, "navCount": 0, birth: date.now() };
+    tabStats.all[id] = { "id": id, "navCount": 0, 'birth': moment(), 'love': 0, 'lastActive': null };
   }
   return tabStats.all[id];
 }
@@ -52,11 +41,7 @@ function getStatForTab(id) {
 
 function tabDrop(tab) {
   delete tabStats.all[tab.id];
-}
-
-function tabAge(id) {
-  let stat = getStatForTab(id);
-  return Date.now() - stat.birth;
+  tabStats.closed += 1;
 }
 
 function tabReady(tab) {
@@ -68,15 +53,33 @@ function tabReady(tab) {
     stat.title = tab.title;
 }
 
+function tabActive(tab) {
+    let stat = getStatForTab(tab.id);
+    stat.lastActive = moment();
+}
+
+function tabInactive(tab) {
+    let stat = getStatForTab(tab.id);
+    let focusTime = stat.lastActive;
+    stat.lastActive = moment();
+    let love = stat.lastActive - focusTime;
+    stat.love += love;
+}
+
+tabs.on('activate', tabActive);
+tabs.on('deactivate', tabInactive);
+
 tabs.on('open', function(tab){
+  tabStats.opened += 1;
   countOpenTabs();
-  tab.on('ready', tabReady)
-});
+})
+tabs.on('ready', tabReady);
 
 tabs.on('close', function(tab) {
   tabDrop(tab);
   countOpenTabs();
 });
+
 
 windows.on('open', function(win) { surveyOpenTabs(win.tabs); });
 windows.on('close', function(win) { surveyOpenTabs(win.tabs); });
@@ -84,7 +87,6 @@ windows.on('close', function(win) { surveyOpenTabs(win.tabs); });
 
 function surveyOpenTabs(tabCollection) {
   for (let tab of tabCollection) {
-    tabAdd(tab);
     let stat = getStatForTab(tab.id);
     tabReady(tab);
   }
@@ -100,7 +102,9 @@ onHide: handleHide
 });
 
 panel.on('show', function() {
-  panel.port.emit('stats', tabStats);
+  let stats = Object.keys(tabStats.all).map(function(k) { return tabStats.all[k]; });
+  stats.map(function(i) { i.age = moment.duration(i.birth - moment()).humanize(true); i.attention = (i.love > 0) ? moment.duration(i.love).humanize() : 'none'; });
+  panel.port.emit('stats', { "opened": tabStats.opened, "closed": tabStats.closed, "stats": stats } );
 });
 
 function handleChange(state) {
@@ -114,3 +118,5 @@ function handleChange(state) {
 function handleHide() {
   button.state('window', {checked: false});
 }
+
+
