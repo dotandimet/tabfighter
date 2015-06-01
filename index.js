@@ -17,30 +17,38 @@ var button = ToggleButton({
 });
 
 function countOpenTabs(){
-  for (let tab of tabs) {
-    tabReady(tab);
-  }
   button.badge = tabStats.count = tabs.length;
 }
 
 var tabStats = {
-  count: 0,
-  oldest: null,
+  count: function() {
+    return Object.keys(tabStats.all).length;
+   },
+  oldest: function() {
+    var oldest_idx;
+    for (let idx in tabStat.all) {
+       
+    return Object.values(tabStats.all).reduce(
+      function(prev, curr, i, ar) {
+        if (curr.birth < prev.birth) {
+         return curr;
+        }
+        else {
+         return prev;
+        }
   newest: null,
   lastClosed : null,
   all : {}
 };
 
 function getStatForTab(id) {
-  if (!tabStats.all[id])
-    tabStats.all[id] = { "id": id, "navCount": 0 };
+  if (!tabStats.all[id]) {
+    // create new:
+    tabStats.all[id] = { "id": id, "navCount": 0, birth: date.now() };
+  }
   return tabStats.all[id];
 }
 
-function tabAdd(tab) {
-  let stat = getStatForTab(tab.id);
-  stat.birth = Date.now();
-}
 
 function tabDrop(tab) {
   delete tabStats.all[tab.id];
@@ -55,13 +63,12 @@ function tabReady(tab) {
     let stat = getStatForTab(tab.id);
     if (stat.url && tab.url !== stat.url) {
         stat.navCount++;
-     }
+    }
     stat.url = tab.url;
     stat.title = tab.title;
 }
 
 tabs.on('open', function(tab){
-  tabAdd(tab);
   countOpenTabs();
   tab.on('ready', tabReady)
 });
@@ -71,10 +78,20 @@ tabs.on('close', function(tab) {
   countOpenTabs();
 });
 
-windows.on('open', countOpenTabs);
-windows.on('close', countOpenTabs);
+windows.on('open', function(win) { surveyOpenTabs(win.tabs); });
+windows.on('close', function(win) { surveyOpenTabs(win.tabs); });
 
-countOpenTabs();
+
+function surveyOpenTabs(tabCollection) {
+  for (let tab of tabCollection) {
+    tabAdd(tab);
+    let stat = getStatForTab(tab.id);
+    tabReady(tab);
+  }
+  countOpenTabs();
+}
+
+surveyOpenTabs(tabs);
 
 var panel = panels.Panel({
 contentURL: self.data.url("panel.html"),
