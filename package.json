@@ -5,12 +5,27 @@
   "description": "A basic add-on",
   "main": "index.js",
   "author": "Dotan Dimet",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dotandimet/tabfighter.git"
+  },
   "engines": {
     "firefox": ">=38.0a1",
     "fennec": ">=38.0a1"
   },
   "license": "MIT",
   "dependencies": {
-    "moment" : "*"
+    "d3": "^3.5.5",
+    "moment": "^2.10.3"
+  },
+  "devDependencies": {
+    "js-beautify": "^1.5.6",
+    "jshint": "^2.8.0"
+  },
+  "jshintConfig": {
+    "esnext": true
+  },
+  "scripts": {
+    "lint": "jshint *.js data/*.js"
   }
 }
