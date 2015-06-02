@@ -102,10 +102,14 @@ onHide: handleHide
 });
 
 panel.on('show', function() {
+  tabInactive(tabs.activeTab); // increment love
   let stats = Object.keys(tabStats.all).map(function(k) { return tabStats.all[k]; });
-  stats.map(function(i) { i.age = moment.duration(i.birth - moment()).humanize(true); i.attention = (i.love > 0) ? moment.duration(i.love).humanize() : 'none'; });
+  
+  stats.map(function(i) { i.AGE = moment.duration(i.birth - moment()).humanize(true); i.LOVE = (i.love > 0) ? moment.duration(i.love).humanize() : 'none'; });
   panel.port.emit('stats', { "opened": tabStats.opened, "closed": tabStats.closed, "stats": stats } );
 });
+
+panel.port.on('picktab', function(id) { for (t of tabs) { if (t.id === id) { t.activate(); } } });
 
 function handleChange(state) {
   if (state.checked) {
