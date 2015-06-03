@@ -45,8 +45,13 @@ function getStatForTab(id) {
 
 
 function tabDrop(tab) {
+  tabStats.closed.push( [ moment(), // of death
+                          getStatForTab(tab.id).birth ]);
   delete tabStats.all[tab.id];
-  tabStats.closed += 1;
+}
+
+function tabAdd(tab) {
+  tabStats.opened.push( getStatForTab(tab.id).birth );
 }
 
 function tabReady(tab) {
@@ -75,7 +80,7 @@ tabs.on('activate', tabActive);
 tabs.on('deactivate', tabInactive);
 
 tabs.on('open', function(tab){
-  tabStats.opened.push( getStatForTab(tab).birth );
+  tabAdd(tab);
   countOpenTabs();
 });
 
