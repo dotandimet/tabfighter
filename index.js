@@ -3,7 +3,6 @@ var panels = require("sdk/panel");
 var self = require("sdk/self");
 var windows = require("sdk/windows").browserWindows;
 var tabs = require("sdk/tabs");
-var moment = require("moment");
 var { setTimeout } = require("sdk/timers");
 
 var button = ToggleButton({
@@ -23,71 +22,21 @@ function countOpenTabs(){
   button.badge = tabs.length;
 }
 
-var tabStats = {
- opened: [],
- closed: [],
- all : {}
-};
+var tabStats = require('./lib/tabStats').tabStats;
+console.log('tabStats is', tabStats);
 
-function oldestTab() {
-  for( let t of tabs ) {
-    getStatForTab(t.id).birth;
-  }
-}
-
-function getStatForTab(id) {
-  if (!tabStats.all[id]) {
-    // create new:
-    tabStats.all[id] = { "id": id, "navCount": 0, 'birth': moment(), 'love': 0, 'lastActive': null };
-  }
-  return tabStats.all[id];
-}
-
-
-function tabDrop(tab) {
-  tabStats.closed.push( [ moment(), // of death
-                          getStatForTab(tab.id).birth ]);
-  delete tabStats.all[tab.id];
-}
-
-function tabAdd(tab) {
-  tabStats.opened.push( getStatForTab(tab.id).birth );
-}
-
-function tabReady(tab) {
-    let stat = getStatForTab(tab.id);
-    if (stat.url && tab.url !== stat.url) {
-        stat.navCount++;
-    }
-    stat.url = tab.url;
-    stat.title = tab.title;
-}
-
-function tabActive(tab) {
-    let stat = getStatForTab(tab.id);
-    stat.lastActive = moment();
-}
-
-function tabInactive(tab) {
-    let stat = getStatForTab(tab.id);
-    let focusTime = stat.lastActive;
-    stat.lastActive = moment();
-    let love = stat.lastActive - focusTime;
-    stat.love += love;
-}
-
-tabs.on('activate', tabActive);
-tabs.on('deactivate', tabInactive);
+tabs.on('activate', function(tab){ tabStats.onActive(tab); });
+tabs.on('deactivate', function(tab){ tabStats.onInactive(tab); });
 
 tabs.on('open', function(tab){
-  tabAdd(tab);
+  tabStats.onOpen(tab);
   countOpenTabs();
 });
 
-tabs.on('ready', tabReady);
+tabs.on('ready', function(tab){ tabStats.onReady(tab); });
 
 tabs.on('close', function(tab) {
-  tabDrop(tab);
+  tabStats.onClose(tab);
   countOpenTabs();
 });
 
@@ -98,8 +47,7 @@ windows.on('close', function(win) { surveyOpenTabs(win.tabs); });
 
 function surveyOpenTabs(tabCollection) {
   for (let tab of tabCollection) {
-    let stat = getStatForTab(tab.id);
-    tabReady(tab);
+    tabStats.onReady(tab);
   }
   countOpenTabs();
 }
@@ -107,27 +55,59 @@ function surveyOpenTabs(tabCollection) {
 // maybe timer will make this happen after session restore?
 setTimeout( function() {
     surveyOpenTabs(tabs);
-    panel = panels.Panel({
+    controlPanel = panels.Panel({
       contentURL: self.data.url("panel.html"),
-      contentScriptFile: self.data.url("stats.js"),
+      contentScriptFile: self.data.url("control.js"),
       onHide: handleHide,
     });
-panel.on('show', function() {
-  tabInactive(tabs.activeTab); // increment love
-  let stats = Object.keys(tabStats.all).map(function(k) { return tabStats.all[k]; });
-  
-  stats.map(function(i) { i.AGE = moment.duration(i.birth - moment()).humanize(true); i.LOVE = (i.love > 0) ? moment.duration(i.love).humanize() : 'none'; });
-  panel.port.emit('stats', { "opened": tabStats.opened, "closed": tabStats.closed, "stats": stats, "overflowed": checkInvisibleTabs() } );
-});
-
-panel.port.on('picktab', function(id) { for (let t of tabs) { if (t.id === id) { t.activate(); } } });
-
+    controlPanel.port.on('listTabs', showTabList);
+    controlPanel.on('show', function() {
+      controlPanel.port.emit('stats', tabStats.getStats());
+    });
     }, 2000);
 
-var panel = null;
+var controlPanel = null,
+    tabListPanel = null;
+
+function createTabListPanel() {
+    tabListPanel = panels.Panel({
+      contentURL: self.data.url("tablist.html"),
+      contentScriptFile: self.data.url("stats.js"),
+      onHide: handleHide,
+      width: 600,
+      height: 600
+    });
+tabListPanel.on('show', function() {
+  tabStats.onInactive(tabs.activeTab); // increment love
+  tabListPanel.port.emit('stats', tabStats.getStats());
+});
+
+tabListPanel.port.on('picktab', function(id) {
+   for (let t of tabs) {
+      if (t.id === id) {
+        t.activate();
+      }
+    }
+});
+
+tabListPanel.show();
+};
+
+function showTabList(bool) {
+  if (tabListPanel === null) {
+    createTabListPanel();
+  }
+  if (bool) {
+    tabListPanel.hide();
+  }
+  else {
+    tabListPanel.show();
+  }
+}
+
 function handleChange(state) {
-  if (state.checked && panel !== null) {
-    panel.show({
+  if (state.checked && controlPanel !== null) {
+    controlPanel.show({
     position: button
   });
 }
@@ -137,21 +117,5 @@ function handleHide() {
   button.state('window', {checked: false});
 }
 
-
-//var { modelFor } = require("sdk/model/core");
-var { viewFor } = require("sdk/view/core");
-var tab_utils = require("sdk/tabs/utils");
-
-function getBrowser(tab) {
-  var llt = viewFor(tab);
-  var tabBrowser = tab_utils.getTabBrowserForTab(llt);
-  return tabBrowser;
-}
-
-function checkInvisibleTabs() {
-  var browse = getBrowser(tabs.activeTab);
-  console.log('browser tabs: ' + browse.tabs.length + ' visible: ' + browse.visibleTabs.length);
-  return (browse.tabs.length > browse.visibleTabs.length) ? (browse.tabs.length - browse.visibleTabs.length) : false;
-}
 
 
