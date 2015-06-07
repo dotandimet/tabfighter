@@ -1,8 +1,7 @@
-
-  self.port.on('stats', function(obj) {
-    console.log(obj);
-    document.querySelector('h2').innerHTML = `Since we started, you opened ${obj.opened.length} tabs and closed ${obj.closed.length} tabs`
-                                           + `<br>we have ${obj.stats.length} tabs`;
+self.port.on('stats', function(obj) {
+    document.querySelector('h2').innerHTML =
+            `${obj.stats.length} tabs open` +
+     `${obj.opened.length} tabs since we started, and ${obj.closed.length} tabs closed`;
   });
 
  window.addEventListener('click', function(ev) {
