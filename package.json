@@ -18,15 +18,5 @@
     "d3": "^3.5.5",
     "mithril": "^0.2.0",
     "moment": "^2.10.3"
-  },
-  "devDependencies": {
-    "js-beautify": "^1.5.6",
-    "jshint": "^2.8.0"
-  },
-  "jshintConfig": {
-    "esnext": true
-  },
-  "scripts": {
-    "lint": "jshint *.js data/*.js"
   }
 }

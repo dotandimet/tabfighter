@@ -26,3 +26,53 @@ a:active, a:focus, a:hover {
 }
 
 
+/*
+#chart div {
+  font: 10px sans-serif;
+  background-color: steelblue;
+  text-align: right;
+  padding: 3px;
+  margin: 1px;
+  color: white;
+} */
+
+#chart rect {
+  fill: steelblue;
+  margin: 2px;
+}
+
+#chart rect.opened {
+  fill: red;
+}
+
+#chart rect.closed {
+  fill: green;
+}
+
+#chart text {
+  fill: silver;
+  font-size: 14px;
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+
+#chart {
+  margin: auto;
+  padding: 6px;
+}
+
+label: {
+  padding: 3px;
+}
+
+tr:nth-child(even) {
+  background: #e0e0e0;
+}
+
+table {
+  margin:5px;
+}
+
+td {
+  padding: 4px;
+}
+

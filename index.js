@@ -4,6 +4,7 @@ var self = require("sdk/self");
 var windows = require("sdk/windows").browserWindows;
 var tabs = require("sdk/tabs");
 var { setTimeout } = require("sdk/timers");
+var { Hotkey } = require("sdk/hotkeys");
 
 var button = ToggleButton({
   id: "tabfighter-button",
@@ -57,8 +58,13 @@ setTimeout( function() {
     surveyOpenTabs(tabs);
     controlPanel = panels.Panel({
       contentURL: self.data.url("panel.html"),
-      contentScriptFile: self.data.url("control.js"),
+      contentScriptFile: [
+        "./extlib/d3.js",
+        "./panel.js",
+        "./control.js"
+      ],
       onHide: handleHide,
+      contextMenu: true
     });
     controlPanel.port.on('listTabs', showTabList);
     controlPanel.on('show', function() {
@@ -93,17 +99,24 @@ tabListPanel.port.on('picktab', function(id) {
 tabListPanel.show();
 };
 
-function showTabList(bool) {
+function showTabList() {
   if (tabListPanel === null) {
     createTabListPanel();
   }
-  if (bool) {
+  if (tabListPanel.isShowing) {
     tabListPanel.hide();
   }
   else {
     tabListPanel.show();
   }
 }
+
+var showHotKey = Hotkey({
+  combo: "accel-shift-/",
+  onPress: function() {
+   showTabList();
+  }
+});
 
 function handleChange(state) {
   if (state.checked && controlPanel !== null) {
