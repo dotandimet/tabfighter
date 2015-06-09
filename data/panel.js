@@ -1,26 +1,35 @@
 function chartStats(data) {
-// clear first:
+var colors = {
+  total: '#0000FF',
+  opened: '#FF0000',
+  closed: '#00FF00'
+};
 var width = 320,
     barHeight = 20;
 var Mx = 3 * d3.max(data, function(d){ return d.size });
 var x = d3.scale.linear()
     .domain([0, Mx])
     .range([0, width]);
-var chart = d3.select("#chart")
-  //  .remove()
+    d3.select("#chart")
+      .selectAll('svg').remove();
+    
+    var chart = d3.select("#chart").append('svg')
     .attr("width", width + 15)
     .attr("height", barHeight * data.length);
 
-var bar = chart.selectAll("g")
- //   .remove()
+var bar = d3.select('svg').selectAll("g")
     .data(data)
-  .enter().append("g")
+    .enter()
+    .append("g")
     .attr("transform", function(d, i) { return "translate(0," + i * barHeight + ")"; });
 
-bar.append("rect")
+    bar.append("rect")
     .attr("width", function(d) { return x(d.size) })
     .attr("height", barHeight - 1)
-    .attr('class', function(d){ return d.type });
+    .attr('class', function(d){ return d.type })
+    .style('fill', function(d){ return colors[d.type] })
+    .on('mouseover', function(d){ d3.select(this).style('fill', '#4c5cfc') })
+    .on('mouseout', function(d){ d3.select(this).style('fill', colors[d.type]); });
 
 bar.append("text")
     .attr("x", function(d) { return x(d.size) +10; })

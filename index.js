@@ -60,6 +60,7 @@ setTimeout( function() {
       contentURL: self.data.url("panel.html"),
       contentScriptFile: [
         "./extlib/d3.js",
+        "./extlib/moment.js",
         "./panel.js",
         "./control.js"
       ],
@@ -78,7 +79,10 @@ var controlPanel = null,
 function createTabListPanel() {
     tabListPanel = panels.Panel({
       contentURL: self.data.url("tablist.html"),
-      contentScriptFile: self.data.url("stats.js"),
+      contentScriptFile: [
+        "./extlib/moment.js",
+        "./stats.js",
+      ],
       onHide: handleHide,
       width: 600,
       height: 600

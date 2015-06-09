@@ -41,6 +41,10 @@ a:active, a:focus, a:hover {
   margin: 2px;
 }
 
+#chart rect.total :hover {
+  fill: #4c5cfc;
+}
+
 #chart rect.opened {
   fill: red;
 }

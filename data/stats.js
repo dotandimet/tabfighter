@@ -1,8 +1,17 @@
+function ago(time) {
+    return moment(new Date(time)).fromNow();
+}
+
+function duration(time) {
+    return (time > 0) ? moment.duration(time).humanize()
+                      : 'none';
+}
+
 
 function showTable(stats) {
     var out = '<table><tr><th>Id</th><th>Page</th><th>Pages</th><th>Age</th><th>Love</th></tr>';
     stats.map(function(stat) {
-      out += `<tr><td>${stat.id}</td><td><a href="${stat.url}" data-tab-id="${stat.id}">${stat.title}</a></td><td>${stat.navCount}</td><td>${stat.AGE}</td><td>${stat.LOVE}</tr>`;
+      out += `<tr><td>${stat.id}</td><td><a href="${stat.url}" data-tab-id="${stat.id}">${stat.title}</a></td><td>${stat.navCount}</td><td>${ago(stat.birth)}</td><td>${duration(stat.love)}</tr>`;
     });
     out += '</table>';
     document.getElementById('display').innerHTML = out;
