@@ -14,6 +14,7 @@ self.port.on('stats', function(obj) {
                       { type: 'opened', size: obj.opened.length },
                       { type: 'closed', size: obj.closed.length } ];
     chartStats(chartData);
+//    graphStats(obj);
     let last_opened = ( obj.opened.length > 0 )
                     ? obj.opened[obj.opened.length-1]
                     : false;

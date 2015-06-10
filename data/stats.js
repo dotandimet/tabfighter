@@ -17,6 +17,41 @@ function showTable(stats) {
     document.getElementById('display').innerHTML = out;
 
 }
+
+function textFilter(stats, search) {
+  if (search.length > 0) {
+    let re = new RegExp(search, 'i');
+    stats = stats.filter(
+        function(stat) {
+          console.log(stat.title);
+          return (  stat.title.match(re) !== null
+                 || stat.url.match(re) !== null
+                 ) ? true
+                   : false;
+        });
+  }
+  return stats;
+}
+
+function tableSort(stats, field, dir) {
+  var numCmp = function(a, b) { return a[field] - b[field] };
+  var revNumCmp = function(a, b) { return b[field] - a[field] };
+  var cmpFunc = ( field === 'age' || field === 'love' )
+              ? ( dir && dir === -1) ? revNumCmp
+              : numCmp               : false
+              ;
+  if (cmpFunc) {
+     return stats.sort(cmpFunc);
+  }
+  else {
+     if (dir && dir === -1) {
+        return stats.sort().reverse();
+     }
+     else
+       return stats.sort();
+  }
+}
+
   self.port.on('stats', function(obj) {
     window.obj = obj;
     showTable(obj.stats);
@@ -31,19 +66,5 @@ function showTable(stats) {
 document.getElementById('search').addEventListener('keyup', function(ev) {
   ev.preventDefault();
   let search = ev.target.value;
-  let re = new RegExp(search, 'i');
-  console.log(search);
-  console.log(obj);
-  let stats = obj.stats;
-  if (search.length > 0) {
-    stats = obj.stats.filter(
-        function(stat) {
-          console.log(stat.title);
-          return (  stat.title.match(re) !== null
-                 || stat.url.match(re) !== null
-                 ) ? true
-                   : false;
-        });
-  }
-  showTable(stats);
+  showTable(textFilter(obj.stats, search));
 }, false);

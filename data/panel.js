@@ -1,9 +1,10 @@
-function chartStats(data) {
 var colors = {
   total: '#0000FF',
   opened: '#FF0000',
   closed: '#00FF00'
 };
+
+function chartStats(data) {
 var width = 320,
     barHeight = 20;
 var Mx = 3 * d3.max(data, function(d){ return d.size });
@@ -38,4 +39,21 @@ bar.append("text")
     .text(function(d) { return `${d.size} ${d.type}`; });
 
 //  console.log(document.getElementById('chart').innerHTML);
+};
+
+function graphStats(data) {
+  var width = 320,
+      height = 320;
+  var all_times = [ Date.now() ];
+  data.closed.map(function(d){ all_times.push(d[1]); });
+  data.opened.map(function(d){ all_times.push(d); });
+  var max = d3.max(all_times);
+  var min = d3.min(all_times);
+  var x = d3.scale.linear()
+        .domain([min, max])
+        .range([0,320]);
+  d3.select('#graph').selectAll('svg').remove();
+  var svg = d3.select('#graph').append('svg').attr("width", width).attr('height', height);
+  svg.selectAll('circle')
+     .data(data.closed);
 };
