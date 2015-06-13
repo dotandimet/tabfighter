@@ -116,7 +116,7 @@ function showTabList() {
 }
 
 var showHotKey = Hotkey({
-  combo: "accel-shift-/",
+  combo: "accel-alt-/",
   onPress: function() {
    showTabList();
   }
