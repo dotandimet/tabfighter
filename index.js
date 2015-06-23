@@ -150,25 +150,14 @@ function tabContainer(window) {
 }
 
 
-function myExtensionHandleRestore(aEvent) {
-   var tab = aEvent.originalTarget;        /* the tab being restored */
-   var uri = tab.linkedBrowser.contentDocument.location;  /* the tab's URI */
-  console.log('Tab is: ' + tab + ' uri is ' + uri);
-}
-
-console.log("Trying to add session store listeners");
-for (let win of windows) {
-  console.log('Tab container:' + tabContainer(win));
-  tabContainer(win).addEventListener("SSTabRestoring", myExtensionHandleRestore, false);
-}
-
-windows.on('open', function(win) {
-  tabContainer(win).addEventListener("SSTabRestoring", myExtensionHandleRestore, false);
-});
-
-console.log("Trying to do something with session store itself");
-console.log("closed window data:" + sess.getClosedWindowData());
-
 function sessionStuff() {
-  return sess.getBrowserState();
+  let info = sess.getBrowserStateObject();
+  let out = '';
+  for (let win of info.windows){
+    for (let t of win.tabs) {
+      let tab = t.entries[t.entries.length-1];
+      out += tab.ID + ' ' + tab.url + ' ' + tab.title + "<br>";
+    }
+  }
+  return out;
 }
