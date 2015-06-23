@@ -5,6 +5,7 @@ var windows = require("sdk/windows").browserWindows;
 var tabs = require("sdk/tabs");
 var { setTimeout } = require("sdk/timers");
 var { Hotkey } = require("sdk/hotkeys");
+var sess = require('./lib/session').sessionStore;
 
 var button = ToggleButton({
   id: "tabfighter-button",
@@ -48,10 +49,13 @@ windows.on('close', function(win) { surveyOpenTabs(win.tabs); });
 
 function surveyOpenTabs(tabCollection) {
   for (let tab of tabCollection) {
+    console.log(tab.id);
+    console.log(sess.getTabState(tab));
     tabStats.onReady(tab);
   }
   countOpenTabs();
 }
+
 // run survey on startup:
 // maybe timer will make this happen after session restore?
 setTimeout( function() {
@@ -70,6 +74,7 @@ setTimeout( function() {
     controlPanel.port.on('listTabs', showTabList);
     controlPanel.on('show', function() {
       controlPanel.port.emit('stats', tabStats.getStats());
+      controlPanel.port.emit('session', sessionStuff());
     });
     }, 2000);
 
@@ -103,6 +108,7 @@ tabListPanel.port.on('picktab', function(id) {
 tabListPanel.show();
 };
 
+
 function showTabList() {
   if (tabListPanel === null) {
     createTabListPanel();
@@ -135,4 +141,34 @@ function handleHide() {
 }
 
 
+var { viewFor } = require("sdk/view/core");
+var tab_utils = require("sdk/tabs/utils");
 
+function tabContainer(window) {
+  var llw = viewFor(window);
+  return tab_utils.getTabContainer(llw);
+}
+
+
+function myExtensionHandleRestore(aEvent) {
+   var tab = aEvent.originalTarget;        /* the tab being restored */
+   var uri = tab.linkedBrowser.contentDocument.location;  /* the tab's URI */
+  console.log('Tab is: ' + tab + ' uri is ' + uri);
+}
+
+console.log("Trying to add session store listeners");
+for (let win of windows) {
+  console.log('Tab container:' + tabContainer(win));
+  tabContainer(win).addEventListener("SSTabRestoring", myExtensionHandleRestore, false);
+}
+
+windows.on('open', function(win) {
+  tabContainer(win).addEventListener("SSTabRestoring", myExtensionHandleRestore, false);
+});
+
+console.log("Trying to do something with session store itself");
+console.log("closed window data:" + sess.getClosedWindowData());
+
+function sessionStuff() {
+  return sess.getBrowserState();
+}

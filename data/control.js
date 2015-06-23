@@ -7,6 +7,7 @@ function duration(time) {
                       : 'none';
 }
 
+self.port.on('alert', function(text) { document.getElementById('graph').innerHTML = text; });
 self.port.on('stats', function(obj) {
     document.querySelector('h2').innerHTML =
             `We have ${obj.stats.length} tabs open; ${obj.opened.length} tabs since we started, and ${obj.closed.length} tabs closed`;
@@ -31,7 +32,7 @@ self.port.on('stats', function(obj) {
       out.push(`Last tab closed ${ago(last_closed[0])}`);
       out.push(`It was ${duration(last_closed[0] - last_closed[1])} old`);
     }
-    document.getElementById('activity').innerHTML = out.join('<br>');
+//    document.getElementById('activity').innerHTML = out.join('<br>');
   });
 
  window.addEventListener('click', function(ev) {
@@ -41,4 +42,7 @@ self.port.on('stats', function(obj) {
     }
  }, false);
 
+self.port.on('session', function(info) {
+    document.getElementById('activity').innerHTML = info;
+});
 
