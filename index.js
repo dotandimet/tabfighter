@@ -94,7 +94,7 @@ function createTabListPanel() {
     });
 tabListPanel.on('show', function() {
   tabStats.onInactive(tabs.activeTab); // increment love
-  tabListPanel.port.emit('stats', tabStats.getStats());
+  tabListPanel.port.emit('stats', {stats: sess.getStats() });
 });
 
 tabListPanel.port.on('picktab', function(id) {
