@@ -30,36 +30,18 @@ console.log('tabStats is', tabStats);
 tabs.on('activate', function(tab){ tabStats.onActive(tab); });
 tabs.on('deactivate', function(tab){ tabStats.onInactive(tab); });
 
-tabs.on('open', function(tab){
-  tabStats.onOpen(tab);
-  countOpenTabs();
-});
-
-tabs.on('ready', function(tab){ tabStats.onReady(tab); });
-
-tabs.on('close', function(tab) {
-  tabStats.onClose(tab);
-  countOpenTabs();
-});
+tabs.on('open', countOpenTabs);
+tabs.on('close', countOpenTabs);
 
 
-windows.on('open', function(win) { surveyOpenTabs(win.tabs); });
-windows.on('close', function(win) { surveyOpenTabs(win.tabs); });
+windows.on('open', countOpenTabs);
+windows.on('close', countOpenTabs);
 
-
-function surveyOpenTabs(tabCollection) {
-  for (let tab of tabCollection) {
-    console.log(tab.id);
-    console.log(sess.getTabState(tab));
-    tabStats.onReady(tab);
-  }
-  countOpenTabs();
-}
 
 // run survey on startup:
 // maybe timer will make this happen after session restore?
 setTimeout( function() {
-    surveyOpenTabs(tabs);
+    countOpenTabs();
     controlPanel = panels.Panel({
       contentURL: self.data.url("panel.html"),
       contentScriptFile: [
@@ -73,7 +55,7 @@ setTimeout( function() {
     });
     controlPanel.port.on('listTabs', showTabList);
     controlPanel.on('show', function() {
-      controlPanel.port.emit('stats', tabStats.getStats());
+      controlPanel.port.emit('stats', tabStats.getStats(tabs));
       controlPanel.port.emit('session', sessionStuff());
     });
     }, 2000);
@@ -94,7 +76,7 @@ function createTabListPanel() {
     });
 tabListPanel.on('show', function() {
   tabStats.onInactive(tabs.activeTab); // increment love
-  tabListPanel.port.emit('stats', {stats: sess.getStats() });
+  tabListPanel.port.emit('stats', tabStats.getStats(tabs));
 });
 
 tabListPanel.port.on('picktab', function(id) {
