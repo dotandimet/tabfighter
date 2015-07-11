@@ -21,7 +21,10 @@ var button = ToggleButton({
 });
 
 function countOpenTabs(){
-  button.badge = tabs.length;
+  if (!button)
+    return false;
+  if (tabs && tabs.length > 0)
+    button.badge = tabs.length;
 }
 
 var tabStats = require('./lib/tabStats').tabStats;
@@ -80,8 +83,10 @@ tabListPanel.on('show', function() {
 });
 
 tabListPanel.port.on('picktab', function(id) {
+   
    for (let t of tabs) {
       if (t.id === id) {
+        t.window.activate();
         t.activate();
       }
     }

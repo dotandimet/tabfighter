@@ -68,3 +68,8 @@ document.getElementById('search').addEventListener('keyup', function(ev) {
   let search = ev.target.value;
   showTable(textFilter(obj.stats, search));
 }, false);
+
+document.querySelector('form').addEventListener('submit', function(ev) {
+  ev.preventDefault();
+  return false;
+}, false);
